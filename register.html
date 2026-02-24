@@ -125,42 +125,43 @@ async function register(){
 
     const user = data.user;
 
-    // 2️⃣ Vérifier si code parrain existe
-    let parrainUUID = null;
+    // 2️⃣ Vérifier si le code parrain existe
+let parrainUUID = null;
 
-    if(parrainCode){
-        const { data: parrainData } = await supabaseClient
-            .from("profiles")
-            .select("id")
-            .eq("ref_code", parrainCode)
-            .single();
-
-        if(parrainData){
-            parrainUUID = parrainData.id;
-        }
-    }
-
-    // 3️⃣ Générer code de parrainage unique
-    const newRefCode = crypto.randomUUID().slice(0,8);
-
-    // 4️⃣ Insérer profil avec BON parrain_id
-    const { error: profileError } = await supabaseClient
+if(code_de_parrainage){
+    const { data: parrainData } = await supabaseClient
         .from("profiles")
-        .insert({
-            id: user.id,
-            nom: nom,
-            email: email,
-            ref_code: newRefCode,
-            parrain_id: parrainUUID,
-            solde: 0,
-            total_income: 0,
-            total_withdrawn: 0,
-            role: "user"
-        });
+        .select("id")
+        .eq("ref_code", code_de_parrainage.toUpperCase())
+        .maybeSingle();
 
-    if(profileError){
-        message.innerHTML = "<div class='error'>Erreur création profil</div>";
-        return;
+    if(parrainData){
+        parrainUUID = parrainData.id;
+    }
+}
+
+// 3️⃣ Générer un code de parrainage unique
+const nouveauRefCode = crypto.randomUUID().slice(0,8).toUpperCase();
+
+// 4️⃣ Insérer le profil correctement
+const { error: profileError } = await supabaseClient
+    .from("profiles")
+    .insert({
+        id: utilisateur.id,
+        nom: nom,
+        email: e_mail,
+        ref_code: nouveauRefCode,
+        parrain_id: parrainUUID,
+        solde: 0,
+        total_income: 0,
+        total_withdrawn: 0,
+        role: "user"
+    });
+
+if(profileError){
+    message.innerHTML = "<div class='error'>Erreur de création du profil</div>";
+    return;
+    }
     }
 
     window.location.href = "home.html";
